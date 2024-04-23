@@ -8,6 +8,11 @@ export async function getEscalas() {
   return escalas
 }
 
+export async function getUsers() {
+  const users = await prisma.user.findMany()
+  return users
+}
+
 export async function getUserEscalas() {
   const session = await auth()
   const prompts = await prisma.escala.findMany({
@@ -26,12 +31,10 @@ export async function criarEscala(input: z.infer<typeof upsertPromptSchema>) {
         funcao: input.funcao,
         userId: input.userId,
       },
-    });
-    return novaEscala;
+    })
+    return novaEscala
   } catch (error) {
-    console.error('Erro ao criar a escala:', error);
-    throw new Error('Erro ao criar a escala');
+    console.error('Erro ao criar a escala:', error)
+    throw new Error('Erro ao criar a escala')
   }
 }
-
-
