@@ -16,8 +16,12 @@ export default async function page() {
   const today = new Date()
 
   function findNextSchedule() {
+    const today = new Date()
+    today.setHours(23, 59, 59, 999)
+
     const nextSchedule = escalas.find((schedule) => {
-      return schedule.data > today
+      const scheduleDate = new Date(schedule.data)
+      return scheduleDate > today
     })
 
     return nextSchedule
