@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/card'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import Header from '@/components/Header'
 import { stringToColor } from '@/lib/utils'
 
 export default async function page() {
@@ -51,9 +50,7 @@ export default async function page() {
   const nextSchedule = findNextSchedule()
 
   return (
-    <div className="flex h-screen flex-col">
-      <Header />
-
+    <div className="flex h-full flex-col">
       <div className="h-full flex justify-center items-center">
         <Card className="p-8 w-1/3">
           <CardTitle>{formattedDate}</CardTitle>

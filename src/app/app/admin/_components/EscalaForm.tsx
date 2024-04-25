@@ -1,7 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
@@ -14,10 +14,31 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import { useState } from 'react'
 import SortearEscala from './action'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { User } from '@prisma/client'
 
 const formSchema = z.object({
   escala: z.array(
@@ -28,18 +49,22 @@ const formSchema = z.object({
   ),
 })
 
-export default function EscalaForm() {
-  const [pessoas, setPessoas] = useState([
-    { userId: '', funcao: '' },
-    { userId: '', funcao: '' },
-  ])
-
+export default function EscalaForm({ users }: { users: User[] }) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      escala: [
+        { userId: '', funcao: '' },
+        { userId: '', funcao: '' },
+      ],
+    },
   })
-  const removeTag = (indexToRemove: number) => {
-    setPessoas(pessoas.filter((_, index) => index !== indexToRemove))
-  }
+
+  const { fields, remove, append } = useFieldArray({
+    name: 'escala',
+    control: form.control,
+    shouldUnregister: false,
+  })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     SortearEscala(values.escala)
@@ -50,14 +75,14 @@ export default function EscalaForm() {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <ScrollArea className="h-64">
           <div className="grid grid-cols-2 gap-4">
-            {pessoas.map((field, index) => (
+            {fields.map((field, index) => (
               <div key={index} className="flex flex-col gap-4">
                 <div className="flex items-center gap-2 font-medium">
                   Membro {index + 1}
                   <button
                     className="text-red-500 text-xs font-normal"
                     type="button"
-                    onClick={() => removeTag(index)}
+                    onClick={() => remove(index)}
                   >
                     remover
                   </button>
@@ -68,14 +93,57 @@ export default function EscalaForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Membro</FormLabel>
-                      <FormDescription />
-                      <FormControl>
-                        <Input
-                          autoComplete="off"
-                          {...field}
-                          placeholder="Id do membro"
-                        />
-                      </FormControl>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                'w-full justify-between',
+                                !field.value && 'text-muted-foreground',
+                              )}
+                            >
+                              {field.value
+                                ? users.find((user) => user.id === field.value)
+                                    ?.email
+                                : 'Selecionar membro.'}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[200px] p-0">
+                          <Command>
+                            <CommandInput placeholder="Buscar membro ..." />
+                            <CommandEmpty>No language found.</CommandEmpty>
+                            <CommandGroup>
+                              {users &&
+                                users.map((user) => (
+                                  <CommandItem
+                                    value={user.email || ''}
+                                    key={user.id}
+                                    onSelect={() => {
+                                      form.setValue(
+                                        `escala.${index}.userId`,
+                                        user.id,
+                                      )
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        'mr-2 h-4 w-4',
+                                        user.id === field.value
+                                          ? 'opacity-100'
+                                          : 'opacity-0',
+                                      )}
+                                    />
+                                    {user.email}
+                                  </CommandItem>
+                                ))}
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -89,13 +157,22 @@ export default function EscalaForm() {
                         Função
                       </FormLabel>
                       <FormDescription />
-                      <FormControl>
-                        <Input
-                          autoComplete="off"
-                          {...field}
-                          placeholder="Função do membro"
-                        />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecionar função." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="instagram">Instagram</SelectItem>
+                          <SelectItem value="fotos">Fotos</SelectItem>
+                          <SelectItem value="projecao">Projeção</SelectItem>
+                          <SelectItem value="live">Live</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -109,7 +186,7 @@ export default function EscalaForm() {
             type="button"
             className="w-full"
             variant={'secondary'}
-            onClick={() => setPessoas([...pessoas, { userId: '', funcao: '' }])}
+            onClick={() => append({ userId: '', funcao: '' })}
           >
             Adicionar membro
           </Button>

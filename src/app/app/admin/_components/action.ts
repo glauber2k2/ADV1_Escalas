@@ -7,13 +7,43 @@ export default async function SortearEscala(
 ) {
   const diasSemana = ['terça', 'quinta', 'domingo']
 
-  // Distribuir os objetos entre terças, quintas e domingos
+  const hoje = new Date()
+  const proximoDia = new Date(hoje)
+
+  // Dividir as pessoas por função
+  const pessoasPorFuncao: Record<string, { userId: string; funcao: string }[]> =
+    {}
+  valores.forEach(({ userId, funcao }) => {
+    if (!pessoasPorFuncao[funcao]) {
+      pessoasPorFuncao[funcao] = []
+    }
+    pessoasPorFuncao[funcao].push({ userId, funcao })
+  })
+
+  // Distribuir as pessoas igualmente entre as escalas
+  const escalas: { userId: string; funcao: string; dia: string }[] = []
+  do {
+    const dia = getDiaDaSemana(proximoDia)
+    if (diasSemana.includes(dia)) {
+      Object.values(pessoasPorFuncao).forEach((pessoas) => {
+        // Verificar se ainda há pessoas para atribuir nesta função
+        if (pessoas.length > 0) {
+          // Selecionar a próxima pessoa para esta função
+          const { userId, funcao } = pessoas.shift()!
+          escalas.push({ userId, funcao, dia })
+          // Adicionar a pessoa de volta ao final da lista para que ela seja atribuída novamente no futuro
+          pessoas.push({ userId, funcao })
+        }
+      })
+    }
+    proximoDia.setDate(proximoDia.getDate() + 1)
+  } while (proximoDia.getMonth() === hoje.getMonth())
+
+  // Criar as escalas
   await Promise.all(
-    diasSemana.map(async (dia) => {
-      for (const valor of valores) {
-        const data = calcularDataProximoDia(dia)
-        await criarEscala({ ...valor, data })
-      }
+    escalas.map(({ userId, funcao, dia }) => {
+      const data = calcularDataProximoDia(dia)
+      return criarEscala({ userId, funcao, data })
     }),
   )
 }
@@ -23,14 +53,14 @@ function calcularDataProximoDia(dia: string) {
   const proximoDia = new Date(hoje)
 
   // Encontrar o próximo dia especificado (terça, quinta ou domingo)
-  while (proximoDia.getDay() !== getDiaSemana(dia)) {
+  while (getDiaDaSemana(proximoDia) !== dia) {
     proximoDia.setDate(proximoDia.getDate() + 1)
   }
 
   return proximoDia
 }
 
-function getDiaSemana(dia: string) {
+function getDiaDaSemana(date: Date) {
   const diasSemana = [
     'domingo',
     'segunda',
@@ -40,5 +70,5 @@ function getDiaSemana(dia: string) {
     'sexta',
     'sábado',
   ]
-  return diasSemana.indexOf(dia.toLowerCase())
+  return diasSemana[date.getDay()]
 }
