@@ -14,7 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { useState } from 'react'
 import SortearEscala from './action'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
@@ -82,7 +81,11 @@ export default function EscalaForm({ users }: { users: User[] }) {
                   <button
                     className="text-red-500 text-xs font-normal"
                     type="button"
-                    onClick={() => remove(index)}
+                    onClick={() => {
+                      if (fields.length > 2) {
+                        remove(index)
+                      }
+                    }}
                   >
                     remover
                   </button>
