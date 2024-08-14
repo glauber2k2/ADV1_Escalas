@@ -3,9 +3,8 @@
 import React, { ReactNode } from 'react'
 import { Button } from '../ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
-import { LogOut, Terminal, User2 } from 'lucide-react'
+import { LogOut, User2 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
-import Link from 'next/link'
 
 export default function UserMenu({ children }: { children: ReactNode }) {
   return (

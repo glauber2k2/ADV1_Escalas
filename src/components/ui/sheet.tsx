@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 'use client'
 
 import * as React from 'react'
@@ -18,6 +19,7 @@ const SheetPortal = SheetPrimitive.Portal
 const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
+  // eslint-disable-next-line react/prop-types
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
